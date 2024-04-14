@@ -184,19 +184,45 @@ namespace Hospital
     //<!Summary>
     //Concrete class SendingEmail
     //responsible for Notifying doctor and patient for appointment details
-    class SendingEmail
+
+    interface IService
+    {
+        public void Send();
+    }
+    class SendingEmail : IService
     {
 
-        public void Notify(Patient p, Appointment appointment)
+        public void Send()
         {
 
-            Console.WriteLine($"To Doctor :{appointment.Doctor} ");
-            Console.WriteLine($"Patient : {p._email}");
-            Console.WriteLine($"appointment is on : {appointment.Date}");
-        }
 
+            Console.WriteLine("Sending Email");
+
+        }
+    }
+    class SendingSMS : IService
+    {
+
+        public void Send()
+        {
+            Console.WriteLine("Sending SMS");
+
+        }
     }
 
+
+    class NotifyService
+    {
+        IService _service;
+        public void SetService( IService service )
+        { _service = service; }
+        public void Notify()
+        {
+            _service.Send();
+
+        }
+        
+    }
 
 
     //<!Summary>
@@ -249,6 +275,24 @@ namespace Hospital
             _patients.Add(Patient);
         }
     }
+   public enum services { SMS, Email };
+    class ServiceFactory
+    {
+        public static IService Create(services type)
+        {
+            switch(type)
+            {
+                case services.SMS:
+                    return new SendingSMS();
+                case services.Email:
+                    return new SendingEmail();
+                default:
+                    return new SendingEmail();
+
+
+            }
+        }
+    }
 
     //Here is the Code goes
     class Program
@@ -259,6 +303,7 @@ namespace Hospital
             int docId = 1;
             int patientId = 1;
             int appointmentId = 1;
+
 
             //intializing object from hospital
             Hospital hospital = new Hospital("ElSalam", "Mohandessien");
@@ -284,10 +329,13 @@ namespace Hospital
 
 
             //Sending Notification
-            var sendemail = new SendingEmail();
-            sendemail.Notify(Islam, appointmentOne);
-            
+            IService _service = ServiceFactory.Create(services.Email);
+            NotifyService _notifyService = new NotifyService(); 
+            _notifyService.SetService( _service );
+            _notifyService.Notify();
+            Console.WriteLine("------------------------------");
 
+            
             //intializing objects from Doctors
              Doctor islam1 = new Doctor(docId++, "Islam1", "yasser", "islamYasser@gmail.com", "Allergy and Immunology");
              Doctor islam2 = new Doctor(docId++, "Islam2", "yasser", "islamYasser@gmail.com", "Anesthesiology");
